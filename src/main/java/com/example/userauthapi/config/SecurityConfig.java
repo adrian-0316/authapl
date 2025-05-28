@@ -50,10 +50,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults()) // стандартная форма логина
-                .csrf(csrf -> csrf.disable()); // отключи, если используешь POST-запросы без CSRF-токена
+                .formLogin(form -> form
+                        .loginPage("/auth/login") // если у тебя есть кастомная страница логина
+                        .defaultSuccessUrl("/profile", true) // <--- сюда редирект после успешной авторизации
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/auth/login?logout")
+                )
+                .csrf(csrf -> csrf.disable());
+
         return http.build();
     }
 }
